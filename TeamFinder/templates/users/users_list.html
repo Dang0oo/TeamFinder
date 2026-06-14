@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Пользователи - TeamFinder{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Пользователи</h1>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for user in users %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" class="rounded-circle mb-2" width="80" height="80">
+                    {% else %}
+                        <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle mb-2" width="80" height="80">
+                    {% endif %}
+                    <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+                    <a href="{% url 'profile' user.id %}" class="btn btn-sm btn-primary">Посмотреть профиль</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center">Нет пользователей.</p>
+    {% endfor %}
+</div>
+
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Назад</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Вперед</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

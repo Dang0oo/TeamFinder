@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная - TeamFinder{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Актуальные проекты</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'project_create' %}" class="btn btn-primary">Создать проект</a>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for project in projects %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        {% if project.author.profile_picture %}
+                            <img src="{{ project.author.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40">
+                        {% else %}
+                            <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle me-2" width="40" height="40">
+                        {% endif %}
+                        <a href="{% url 'profile' project.author.id %}">{{ project.author.get_full_name|default:project.author.username }}</a>
+                    </div>
+                    <h5 class="card-title"><a href="{% url 'project_detail' project.id %}" class="text-decoration-none">{{ project.title }}</a></h5>
+                    <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+                    <small class="text-muted">{{ project.created_at|date:"d.m.Y" }}</small>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary">{{ project.get_status_display }}</span>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-sm btn-outline-danger">❤ Избранное</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center">Нет доступных проектов.</p>
+    {% endfor %}
+</div>
+
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Назад</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Вперед</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

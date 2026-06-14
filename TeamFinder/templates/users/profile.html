@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user_profile.get_full_name }} - TeamFinder{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                {% if user_profile.profile_picture %}
+                    <img src="{{ user_profile.profile_picture.url }}" class="rounded-circle mb-3" width="120" height="120">
+                {% else %}
+                    <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle mb-3" width="120" height="120">
+                {% endif %}
+                <h4>{{ user_profile.get_full_name }}</h4>
+                <p>{{ user_profile.about }}</p>
+                <p>Email: {{ user_profile.email }}</p>
+                {% if user_profile.mobile %}<p>Телефон: {{ user_profile.mobile }}</p>{% endif %}
+                {% if user_profile.git_profile %}<p>GitHub: <a href="{{ user_profile.git_profile }}" target="_blank">{{ user_profile.git_profile }}</a></p>{% endif %}
+                {% if request.user == user_profile %}
+                    <a href="{% url 'project_create' %}" class="btn btn-outline-primary mt-2 w-100">Добавить проект</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h5>Проекты пользователя</h5>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            {% for project in user_profile.projects.all %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><a href="{% url 'project_detail' project.id %}">{{ project.title }}</a></h5>
+                            <p class="card-text">{{ project.description|truncatewords:15 }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <span class="badge bg-secondary">{{ project.get_status_display }}</span>
+                            <small>{{ project.created_at|date:"d.m.Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>У пользователя пока нет проектов.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
