@@ -31,7 +31,11 @@
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <span class="badge bg-secondary">{{ project.get_status_display }}</span>
                     {% if user.is_authenticated %}
-                        <button class="btn btn-sm btn-outline-danger">❤ Избранное</button>
+                        {% if user in project.favorited_by.all %}
+                            <a href="{% url 'remove_from_favorites' project.id %}?next=home" class="btn btn-sm btn-danger"> В избранном</a>
+                        {% else %}
+                            <a href="{% url 'add_to_favorites' project.id %}?next=home" class="btn btn-sm btn-outline-danger"> В избранное</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>

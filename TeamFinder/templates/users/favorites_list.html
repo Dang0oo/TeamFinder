@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Моё избранное - TeamFinder{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Моё избранное</h1>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for favorite in favorites %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        {% if favorite.project.author.profile_picture %}
+                            <img src="{{ favorite.project.author.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40">
+                        {% else %}
+                            <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle me-2" width="40" height="40">
+                        {% endif %}
+                        <a href="{% url 'profile' favorite.project.author.id %}">{{ favorite.project.author.get_full_name|default:favorite.project.author.username }}</a>
+                    </div>
+                    <h5 class="card-title"><a href="{% url 'project_detail' favorite.project.id %}" class="text-decoration-none">{{ favorite.project.title }}</a></h5>
+                    <p class="card-text">{{ favorite.project.description|truncatewords:20 }}</p>
+                    <small class="text-muted">{{ favorite.project.created_at|date:"d.m.Y" }}</small>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'remove_from_favorites' favorite.project.id %}?next=favorites_list" class="btn btn-sm btn-danger w-100">Удалить из избранного</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center">У вас пока нет избранных проектов.</p>
+    {% endfor %}
+</div>
+{% endblock %}
