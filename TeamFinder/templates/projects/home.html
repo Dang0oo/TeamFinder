@@ -17,24 +17,26 @@
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-2">
-                        {% if project.author.profile_picture %}
-                            <img src="{{ project.author.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40">
+                        {% if project.owner.avatar %}
+                            <img src="{{ project.owner.avatar.url }}" class="rounded-circle me-2" width="40" height="40">
                         {% else %}
-                            <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle me-2" width="40" height="40">
+                            <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                <span class="text-white">{{ project.owner.name|first|default:'?' }}</span>
+                            </div>
                         {% endif %}
-                        <a href="{% url 'profile' project.author.id %}">{{ project.author.get_full_name|default:project.author.username }}</a>
+                        <a href="{% url 'profile' project.owner.id %}">{{ project.owner.get_full_name|default:project.owner.email }}</a>
                     </div>
-                    <h5 class="card-title"><a href="{% url 'project_detail' project.id %}" class="text-decoration-none">{{ project.title }}</a></h5>
+                    <h5 class="card-title"><a href="{% url 'project_detail' project.id %}" class="text-decoration-none">{{ project.name }}</a></h5>
                     <p class="card-text">{{ project.description|truncatewords:20 }}</p>
                     <small class="text-muted">{{ project.created_at|date:"d.m.Y" }}</small>
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <span class="badge bg-secondary">{{ project.get_status_display }}</span>
                     {% if user.is_authenticated %}
-                        {% if user in project.favorited_by.all %}
-                            <a href="{% url 'remove_from_favorites' project.id %}?next=home" class="btn btn-sm btn-danger"> В избранном</a>
+                        {% if project in user_favorite_projects %}
+                            <a href="{% url 'remove_from_favorites' project.id %}?next=home" class="btn btn-sm btn-danger">Удалить из избранного</a>
                         {% else %}
-                            <a href="{% url 'add_to_favorites' project.id %}?next=home" class="btn btn-sm btn-outline-danger"> В избранное</a>
+                            <a href="{% url 'add_to_favorites' project.id %}?next=home" class="btn btn-sm btn-outline-danger">В избранное</a>
                         {% endif %}
                     {% endif %}
                 </div>

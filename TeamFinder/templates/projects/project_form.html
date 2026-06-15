@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Редактирование проекта - TeamFinder
+    {% else %}
+        Создание проекта - TeamFinder
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">
+                    {% if form.instance.pk %}
+                        Редактирование проекта
+                    {% else %}
+                        Создание нового проекта
+                    {% endif %}
+                </h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        {% if form.instance.pk %}
+                            Сохранить изменения
+                        {% else %}
+                            Создать проект
+                        {% endif %}
+                    </button>
+                </form>
+                <p class="text-center mt-3 mb-0">
+                    <a href="{% url 'home' %}">Вернуться на главную</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

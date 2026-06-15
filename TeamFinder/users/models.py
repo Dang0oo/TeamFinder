@@ -1,46 +1,42 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from PIL import Image, ImageDraw, ImageFont
+from django.core.exceptions import ValidationError
+from PIL import Image, ImageDraw
 from io import BytesIO
 from django.core.files.base import ContentFile
 import random
+from constants import (
+    NAME_MAX_LENGTH, PHONE_MAX_LENGTH, ABOUT_MAX_LENGTH,
+    AVATAR_SIZE, AVATAR_COLORS
+)
+from .managers import UserManager
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('Email обязателен для заполнения')
-        email = self.normalize_email(email)
-        extra_fields.setdefault('is_active', True)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, password, **extra_fields)
+def validate_github_url(value):
+    if value and 'github.com' not in value:
+        raise ValidationError('Ссылка должна вести на GitHub (github.com)')
 
 
 class User(AbstractUser):
-    username = None  # удаляем поле username
+    username = None
     
-    # Основные поля
     email = models.EmailField(unique=True, verbose_name='Email')
-    name = models.CharField(max_length=124, verbose_name='Имя')
-    surname = models.CharField(max_length=124, verbose_name='Фамилия')
-    profile_picture = models.ImageField(upload_to='profile_pics/', verbose_name='Аватарка')
-    mobile = models.CharField(max_length=12, verbose_name='Номер телефона')
-    git_profile = models.URLField(blank=True, verbose_name='Ссылка на GitHub')
-    about = models.TextField(max_length=256, blank=True, verbose_name='Описание профиля')
+    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name='Имя')
+    surname = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name='Фамилия')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='Аватарка')
+    phone = models.CharField(max_length=PHONE_MAX_LENGTH, verbose_name='Номер телефона')
+    github_url = models.URLField(
+        blank=True,
+        validators=[validate_github_url],
+        verbose_name='Ссылка на GitHub'
+    )
+    about = models.TextField(max_length=ABOUT_MAX_LENGTH, blank=True, verbose_name='Описание профиля')
     
-    # Статусы
     is_active = models.BooleanField(default=True, verbose_name='Активный пользователь')
     is_staff = models.BooleanField(default=False, verbose_name='Администратор')
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'surname', 'mobile']
+    REQUIRED_FIELDS = ['name', 'surname', 'phone']
 
     objects = UserManager()
 
@@ -54,34 +50,26 @@ class User(AbstractUser):
         return self.name
 
     def _generate_avatar(self):
-        colors = [
-            (70, 130, 180), (100, 149, 237), (72, 61, 139),
-            (60, 179, 113), (210, 105, 30), (147, 112, 219),
-            (52, 73, 94), (41, 128, 185), (39, 174, 96),
-            (155, 89, 182), (52, 152, 219), (46, 204, 113),
-        ]
-        bg_color = random.choice(colors)
+        """Генерирует аватарку с первой буквой имени на цветном фоне"""
+        bg_color = random.choice(AVATAR_COLORS)
         
-        size = (200, 200)
-        image = Image.new('RGB', size, bg_color)
+        image = Image.new('RGB', AVATAR_SIZE, bg_color)
         draw = ImageDraw.Draw(image)
         
         first_letter = self.name[0].upper() if self.name else '?'
         
         try:
-            font_size = 120
-            font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_size)
+            from PIL import ImageFont
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 120)
         except:
             font = ImageFont.load_default()
         
         bbox = draw.textbbox((0, 0), first_letter, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
+        position = ((AVATAR_SIZE[0] - text_width) // 2, (AVATAR_SIZE[1] - text_height) // 2)
         
-        x = (size[0] - text_width) // 2
-        y = (size[1] - text_height) // 2
-        
-        draw.text((x, y), first_letter, fill=(255, 255, 255), font=font)
+        draw.text(position, first_letter, fill=(255, 255, 255), font=font)
         
         buffer = BytesIO()
         image.save(buffer, format='PNG')
@@ -90,8 +78,8 @@ class User(AbstractUser):
         return ContentFile(buffer.read(), f'avatar_{self.email}.png')
 
     def save(self, *args, **kwargs):
-        if not self.profile_picture:
-            self.profile_picture = self._generate_avatar()
+        if not self.avatar:
+            self.avatar = self._generate_avatar()
         super().save(*args, **kwargs)
 
 
@@ -101,7 +89,12 @@ class FavoriteProject(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'project')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'project'],
+                name='unique_user_project_favorite'
+            )
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.project.name}"

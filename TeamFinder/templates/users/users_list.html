@@ -36,12 +36,14 @@
         <div class="col">
             <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
-                    {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" class="rounded-circle mb-2" width="80" height="80">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" class="rounded-circle mb-2" width="80" height="80">
                     {% else %}
-                        <img src="{% static 'img/default_profile_picture.png' %}" class="rounded-circle mb-2" width="80" height="80">
+                        <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                            <span class="text-white fs-1">{{ user.name|first|default:'?' }}</span>
+                        </div>
                     {% endif %}
-                    <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+                    <h5 class="card-title">{{ user.get_full_name|default:user.email }}</h5>
                     <a href="{% url 'profile' user.id %}" class="btn btn-sm btn-primary">Посмотреть профиль</a>
                 </div>
             </div>
