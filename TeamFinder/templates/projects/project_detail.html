@@ -6,7 +6,16 @@
 {% block content %}
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
-        <h2>{{ project.name }}</h2>
+        <div class="d-flex justify-content-between align-items-start">
+            <h2>{{ project.name }}</h2>
+            {% if user == project.owner %}
+                <div class="btn-group">
+                    <a href="{% url 'projects:project_edit' project.id %}" class="btn btn-primary">Редактировать</a>
+                    <a href="{% url 'projects:project_delete' project.id %}" class="btn btn-danger">Удалить</a>
+                </div>
+            {% endif %}
+        </div>
+        
         <div class="d-flex align-items-center mb-3">
             {% if project.owner.avatar %}
                 <img src="{{ project.owner.avatar.url }}" alt="avatar" class="rounded-circle me-2" width="50" height="50">
@@ -15,14 +24,24 @@
                     <span class="text-white">{{ project.owner.name|first|default:'?' }}</span>
                 </div>
             {% endif %}
-            <a href="{% url 'profile' project.owner.id %}">{{ project.owner.get_full_name|default:project.owner.email }}</a>
+            <a href="{% url 'users:profile' project.owner.id %}">{{ project.owner.get_full_name|default:project.owner.email }}</a>
         </div>
+        
         <p>{{ project.description }}</p>
+        
         <p><strong>Статус:</strong> <span class="badge bg-secondary">{{ project.get_status_display }}</span></p>
         <p><strong>GitHub:</strong> {% if project.github_url %}<a href="{{ project.github_url }}" target="_blank">{{ project.github_url }}</a>{% else %}Не указан{% endif %}</p>
         <p><strong>Участники:</strong> {{ project.participants.count }}</p>
-        {% if user == project.owner %}
-            <a href="{% url 'project_edit' project.id %}" class="btn btn-primary mt-3">Редактировать проект</a>
+        
+        <!-- НОВЫЕ КНОПКИ -->
+        {% if user.is_authenticated %}
+            {% if user != project.owner %}
+                {% if user in project.participants.all %}
+                    <a href="{% url 'projects:leave_project' project.id %}" class="btn btn-warning mt-3">Выйти из проекта</a>
+                {% else %}
+                    <a href="{% url 'projects:join_project' project.id %}" class="btn btn-success mt-3">Присоединиться к проекту</a>
+                {% endif %}
+            {% endif %}
         {% endif %}
     </div>
 </div>

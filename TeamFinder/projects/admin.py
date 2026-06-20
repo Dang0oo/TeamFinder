@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Project
+
 from constants import ADMIN_LIST_PER_PAGE
+
+from .models import Project
 
 
 @admin.register(Project)
@@ -35,6 +37,7 @@ class ProjectAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('owner').prefetch_related('participants')
     
+    @admin.display(description='Ссылка')
     def view_on_site(self, obj):
         return format_html('<a href="{}">Посмотреть на сайте</a>', obj.get_absolute_url())
-    view_on_site.short_description = 'Ссылка'
+        

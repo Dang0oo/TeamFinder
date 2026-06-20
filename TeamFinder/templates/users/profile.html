@@ -21,7 +21,7 @@
                 {% if user_profile.phone %}<p>Телефон: {{ user_profile.phone }}</p>{% endif %}
                 {% if user_profile.github_url %}<p>GitHub: <a href="{{ user_profile.github_url }}" target="_blank">{{ user_profile.github_url }}</a></p>{% endif %}
                 {% if request.user == user_profile %}
-                    <a href="{% url 'project_create' %}" class="btn btn-outline-primary mt-2 w-100">Добавить проект</a>
+                    <a href="{% url 'projects:project_create' %}" class="btn btn-outline-primary mt-2 w-100">Добавить проект</a>
                 {% endif %}
             </div>
         </div>
@@ -34,7 +34,7 @@
                 <div class="col">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title"><a href="{% url 'project_detail' project.id %}">{{ project.name }}</a></h5>
+                            <h5 class="card-title"><a href="{% url 'projects:project_detail' project.id %}">{{ project.name }}</a></h5>
                             <p class="card-text">{{ project.description|truncatewords:15 }}</p>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
